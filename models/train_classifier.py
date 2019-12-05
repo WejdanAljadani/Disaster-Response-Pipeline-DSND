@@ -111,7 +111,7 @@ def save_model(model,path):
 
 if __name__ == '__main__':
 
-    if len(sys.argv==3):
+    if len(sys.argv)==3:
         #get the paths of database and name of model from the terminal 
         DB_path = sys.argv[1]  # get path of Database
         model_path=sys.argv[2] # get path of model
