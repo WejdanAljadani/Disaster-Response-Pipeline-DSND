@@ -1,6 +1,6 @@
 # Disaster-Response-Pipeline-DSND
 
-The disater response project is used Natural Language Processing and Machine Learning to Classify the messags.
+The disater response project is used Natural Language Processing and Machine Learning to Classify the messages.
 
 Steps of the project  as follows:
 <ol>
