@@ -5,6 +5,7 @@ import re
 import nltk
 import pickle
 import warnings
+import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
 from nltk.corpus import stopwords
@@ -16,12 +17,16 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split,GridSearchCV
-from sklearn.metrics import accuracy_score,recall_score,precision_score
+from sklearn.metrics import classification_report
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 nltk.download('wordnet')
 
 def load_data(DB_path):
+    """
+    this function take the path of database sqlite and load it to data frame
+    then split the data into Messages and categories 
+    """
     print("loading the database")
     # load data from database
     engine = create_engine('sqlite:///{}'.format(DB_path))
@@ -32,14 +37,16 @@ def load_data(DB_path):
     #df=pd.read_sql(sql="SELECT * FROM Msgs",con=engine)
     X= df['message']
     Y=df.drop(["id","message","genre","original"],axis=1)
-    #Replace two values to ones
-    Y.related.replace(2, 1, inplace=True) 
 
     return X,Y
     
     
 
 def tokenize(text):
+    """
+    this function take the text and perform text processing (Normalization and Tokenization)
+    then returns the text which cleaned
+    """
     #1.Punctuation Removal step and normalize
     text=re.sub(r"[^a-zA-Z0-9]"," ",text.lower())
     #print(text)
@@ -58,9 +65,12 @@ def tokenize(text):
     return lemmed_text
 
 
-def train_model(run_pipeline,X_train, y_train):
-    #run thr pipeline
-    model=run_pipeline()
+def train_model(pipeline,X_train, y_train):
+    """
+    this function take the training data and train the data pipeline model
+    and return the trained model
+    """
+    model=pipeline
     print("Start training ....") 
     # train classifier
     model=model.fit(X_train, y_train)
@@ -72,17 +82,26 @@ def train_model(run_pipeline,X_train, y_train):
     
 
 def evaluate_model(model,X_test,y_test):
-    # print accuracy score & precision and recall 
+    """
+    this function take the trained model and evaluate it on the test data
+    and print the Accuracy and classification report
+    
+    """
+    # print classification_report
     print("Evaluation the model .....")
     y_pred = model.predict(X_test)
-    print('Accuracy: {}'.format(accuracy_score(y_test,y_pred)))
-    print('nRecall score: {}'.format(accuracy_score(y_test,y_pred)))
-    print('Precision score: {}'.format(accuracy_score(y_test,y_pred)))
+    print('Accuracy: {}'.format(np.mean(y_test.values == y_pred)))
+    print("Classification report:")
+    print(classification_report(y_test.values, y_pred, target_names=y_test.columns))
     
 
 
 
 def run_pipeline():
+    """
+    Build the data pipeline
+    and return the gridsearch model
+    """
     #Extract features using Bag of words,transforms the data and select the Random forest algorithm as classifire
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
@@ -96,10 +115,16 @@ def run_pipeline():
     }   
     #build the grid seach 
     cv = GridSearchCV(pipeline,param_grid=parameters,cv=3)
+    #run thr pipeline
     print("Now the data pipeline ready to train on the data :)")
+
     return cv
 
 def save_model(model,path):
+    """
+    this function take the path and name of model 
+    and save the model in the path 
+    """
     with open(path, 'wb') as file:
         pickle.dump(model, file)
     
@@ -108,8 +133,7 @@ def save_model(model,path):
     
 
 
-
-if __name__ == '__main__':
+def main():
 
     if len(sys.argv)==3:
         #get the paths of database and name of model from the terminal 
@@ -126,7 +150,7 @@ if __name__ == '__main__':
         grid_model=run_pipeline()  # run data pipeline
 
         #4.Train the model
-        trained_model=train_model(run_pipeline,X_train, y_train)
+        trained_model=train_model(grid_model,X_train, y_train)
         #5.Evaluate the model
         evaluate_model(trained_model,X_test,y_test)
         #6.Save the model
@@ -138,4 +162,9 @@ if __name__ == '__main__':
         print("name of classifire like this >> classifier.pkl")
         print("In the end you have like this in the terminal>>")
         print("python train_classifier.py ../data/DisasterResponse.db classifier.pkl")
+
+
+
+if __name__ == '__main__':
+   main()
 

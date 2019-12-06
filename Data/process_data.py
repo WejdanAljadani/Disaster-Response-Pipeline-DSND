@@ -6,6 +6,10 @@ from sqlalchemy import create_engine
 
 
 def load_data(data_file,categories_file,DB_file):
+    """
+    this function take the paths of dataset,categories and database
+    and clean the data then save the new data into sqlite table
+    """
     # read in file
     #print(data_file)
     #print(type(data_file))
@@ -18,12 +22,15 @@ def load_data(data_file,categories_file,DB_file):
     df=Clean_data(df)
     # load to database
     engine = create_engine("sqlite:///{}".format(DB_file))
-    df.to_sql(DB_file, engine, index=False)
-
-    # define features and label arrays
+    #save the cleaned data as DB table 
+    df.to_sql(name ="Msgs", con=engine, index=False,if_exists='replace')
 
 
 def Clean_data(Data):
+    """
+    this function take the data
+    and returns cleaned data
+    """
     # create a dataframe of the 36 individual category columns
     categories = Data["categories"].str.split(pat=";",expand=True)
     # select the first row of the categories dataframe
@@ -44,6 +51,8 @@ def Clean_data(Data):
         categories[column] = categories[column].astype(str).str[-1]
         # convert column from string to numeric
         categories[column] = categories[column].astype(int)
+    #Replace two values to ones
+    categories.related.replace(2, 1, inplace=True) 
 
     #Replace categories column in df with new category columns.
     # drop the original categories column from `df`
@@ -56,17 +65,24 @@ def Clean_data(Data):
 
     return Data
 
-
-if __name__ == '__main__':
-
-    print(len(sys.argv))
-    if len(sys.argv)<4:
-        print("Please check the arguments must as script_name.py data.csv categories.csv DB_file.db")
-    else:
+def main():
+    #print(len(sys.argv))
+    if len(sys.argv)==4:
         data_file = sys.argv[1]  # get filename of dataset
         categories_file=sys.argv[2] 
         DB_file=sys.argv[3]
         load_data(data_file,categories_file,DB_file)  # run data pipeline
+
+    else:
+        print("Please check the arguments must as script_name.py data.csv categories.csv DB_file.db")
+
+       
+
+
+
+if __name__ == '__main__':
+    main()
+
 
 
 
