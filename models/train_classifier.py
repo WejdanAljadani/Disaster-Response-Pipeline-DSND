@@ -29,7 +29,7 @@ def load_data(DB_path):
     """
     print("loading the database")
     # load data from database
-    engine = create_engine('sqlite:///..{}'.format(DB_path))
+    engine = create_engine('sqlite:///{}'.format(DB_path))
     #print(engine)
     df = pd.read_sql_table("Msgs", con = engine)
     print("the data  successfully loaded :)")
