@@ -13,17 +13,27 @@ def load_data(data_file,categories_file,DB_file):
     # read in file
     #print(data_file)
     #print(type(data_file))
+    print("Start data loading......")
     messages = pd.read_csv(data_file)
     categories = pd.read_csv(categories_file)
     
     # merge datasets
     df = messages.merge(categories,on='id')
+
+    print("Start data cleaning......")
+
     #Clean the data
     df=Clean_data(df)
+    print("Finished a data cleaning......")
+
+    print("Saving cleaned data into the DB......")
+
     # load to database
     engine = create_engine("sqlite:///{}".format(DB_file))
     #save the cleaned data as DB table 
     df.to_sql(name ="Msgs", con=engine, index=False,if_exists='replace')
+    print("The data saved successfully......")
+
 
 
 def Clean_data(Data):
