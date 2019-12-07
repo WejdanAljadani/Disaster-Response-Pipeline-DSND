@@ -3,7 +3,6 @@
 import sys
 import re
 import nltk
-import pickle
 import warnings
 import numpy as np
 import pandas as pd
@@ -14,10 +13,11 @@ from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split,GridSearchCV
 from sklearn.metrics import classification_report
+from sklearn.tree import DecisionTreeClassifier
+import joblib
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 nltk.download('wordnet')
@@ -106,10 +106,10 @@ def run_pipeline():
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(RandomForestClassifier()))])
+        ('clf', MultiOutputClassifier(DecisionTreeClassifier()))])
     #use dic to store the parameters of algorithm
     parameters = {
-    "clf__estimator__n_estimators":[50,100]
+    "clf__estimator__splitter":["best","random"]
     ,"clf__estimator__criterion":["gini","entropy"]
     
     }   
@@ -125,8 +125,8 @@ def save_model(model,path):
     this function take the path and name of model 
     and save the model in the path 
     """
-    with open(path, 'wb') as file:
-        pickle.dump(model, file)
+ 
+    joblib.dump(model, path)
     
     print("The model successfully saved :) ")
     
